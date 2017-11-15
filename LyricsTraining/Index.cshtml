@@ -32,13 +32,25 @@
                 var regex = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/;
                 var match = '';
 
+                $("#lyricsContent").html('');
+                var previousEntry = null;
+                var currentEntry = null;
+
                 for (var i = 0; i < lines.length; i++) {
                     match = regex.exec(lines[i]);
                     if (match != null) {
-                        me1.lyricsArray.push({
+                        currentEntry = {
                             lyrics: match[4],
                             time: Number(match[1]) * 60 + Number(match[2])
-                        });
+                        };
+
+                        if (previousEntry != null)
+                            previousEntry.endTime = currentEntry.time;
+
+                        me1.lyricsArray.push(currentEntry);
+                        previousEntry = currentEntry;
+
+                        //$("#lyricsContent").html($("#lyricsContent").html() + '<p>' + (Number(match[1]) * 60 + Number(match[2])) + ': ' + match[4] + '</p>');
                     }
                 }
             }
@@ -68,9 +80,10 @@
         var lyricsPlayer = (function (lyrics, document) {
             me2 = {};
             me2.lyrics = lyrics;
+            me2.playTime = 0;
 
             var tag = document.createElement('script');
-            var timer = {};
+            var timer = -1;
 
             tag.src = "https://www.youtube.com/iframe_api";
             var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -86,11 +99,13 @@
             me2.pauseVideo = function () {
                 me2.player.pauseVideo();
                 clearInterval(timer);
+                timer = -1;
             }
 
             me2.playVideo = function () {
                 me2.player.playVideo();
-                timer = setInterval(lyricsLoop, 1000);
+                if (timer == -1)
+                    timer = setInterval(lyricsLoop, 1000);
             }
 
             me2.loadUrl = function () {
@@ -102,18 +117,41 @@
                 // jeśli nie odtwarzamy to koniec
                 if (me2.player.getPlayerState() != 1) {
                     clearInterval(timer);
+                    timer = -1;
                     return;
                 }
 
+                // pobieramy aktualny czas odtwarzania
                 var time = me2.player.getCurrentTime(); // in seconds
+
+                // jeśli cofniemy odtwarzanie w trakcie to nie cofamy juz napisów
+                if (time < me2.playTime)
+                    return;
+
+                me2.playTime = time;
+
+                //$("#lyricsTime").text(time);
+
                 // wybieramy linię tekstu do wyświetlenia
                 for (var i = 0; i < lyrics.lyricsArray.length; ++i) {
-                    if (lyrics.lyricsArray[i].time >= time) {
+                    if (lyrics.lyricsArray[i].time < time) {
                         currentText = lyrics.lyricsArray[i].lyrics;
+                    }
+                    else
                         break;
+                }
+                // 1. Moment kiedy należy wyświetlić nową linię napisów
+                if ($("#currentLyrics").text() != currentText) {
+                    // 2. jeśli napisy wpisany i docelowy NIE są takie same to zatrzymujemy odtwarzanie
+                    if ($("#workingLyrics").text() != $("#currentLyrics").text()) {
+                        me2.pauseVideo();
+                    }
+                    // 3. w przeciwnym przypadku kontynujemy i wyświetlamy nowe napisy
+                    else {
+                        $("#workingLyrics").text(currentText.replace(/[а-ёА-Я\w]{1}/g, '_'));
+                        $("#currentLyrics").text(currentText);
                     }
                 }
-                $("#currentLyrics").val(currentText);
             }
 
             me2.keyHandle = function (event) {
@@ -129,12 +167,44 @@
                             me2.pauseVideo();
                         else
                             me2.playVideo();
-
+                        break;
+                    case 8:
+                        me2.player.seekTo(me2.player.getCurrentTime() - 4);
+                        if (me2.player.getPlayerState() != 1)
+                            me2.playVideo();
                         break;
                     default:
                         break;
                 }
+
+                // Obsługa klawiszy literowych
+                if (event.key.match(/[а-ёА-Я\w]{1}/)) {
+                    var index = $("#workingLyrics").text().indexOf('_');
+                    if (index >= 0 && $("#currentLyrics").text().toUpperCase().charAt(index) == event.key.toUpperCase()) {
+                        $("#workingLyrics").text($("#workingLyrics").text().replace(/_{1}/, $("#currentLyrics").text().charAt(index)));
+
+                        // jeżeli player był zatrzymany to kontynuujemy
+                        if ($("#workingLyrics").text() == $("#currentLyrics").text() && me2.player.getPlayerState() != 1) {
+                            me2.player.seekTo(me2.player.getCurrentTime() - 4);
+                            me2.playVideo();
+                        }
+                    }
+
+
+                }
+
                 //alert('Handler for .keypress() called. - ' + event.keyCode);
+            }
+
+            me2.onPlayerStateChange = function (event) {
+                if (me2.player.getPlayerState() == 1) {
+                    if (timer == -1)
+                        timer = setInterval(lyricsLoop, 1000);
+                }
+                else {
+                    clearInterval(timer);
+                    timer = -1;
+                }
             }
 
             return me2;
@@ -148,7 +218,7 @@
                 videoId: 'TzG9sr2Amik',
                 events: {
                     //'onReady': onPlayerReady,
-                    //'onStateChange': onPlayerStateChange
+                    'onStateChange': lyricsPlayer.onPlayerStateChange
                 }
             });
         }
@@ -169,8 +239,13 @@
 
     <div class="row">
         <div class="col-md-12">
-            <div id="currentLyrics" />
+            <div id="workingLyrics" value="TEKST"></div>
+            <div id="currentLyrics" style="display:none" value="TEKST"></div>
         </div>
+    </div>
+    <div class="row">
+        <div> </div>
+        <br />
     </div>
     <div class="row">
         <div class="col-md-8">
@@ -190,8 +265,11 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
-            <div id="lyricsContent" />
+        <div class="col-md-12" id="lyricsTime">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12" id="lyricsContent">
         </div>
     </div>
 </body>
