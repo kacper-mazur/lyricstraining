@@ -105,7 +105,7 @@
             me2.playVideo = function () {
                 me2.player.playVideo();
                 if (timer == -1)
-                    timer = setInterval(lyricsLoop, 1000);
+                    timer = setInterval(lyricsLoop, 250);
             }
 
             me2.loadUrl = function () {
@@ -199,7 +199,7 @@
             me2.onPlayerStateChange = function (event) {
                 if (me2.player.getPlayerState() == 1) {
                     if (timer == -1)
-                        timer = setInterval(lyricsLoop, 1000);
+                        timer = setInterval(lyricsLoop, 250);
                 }
                 else {
                     clearInterval(timer);
