@@ -230,16 +230,21 @@
             $("#loadUrl").click(lyricsPlayer.loadUrl);
             $("#lyricsText").on('change', lyrics.onChange_fileSelected);
         });
-        // -------------------------------------------------------------------------------------------------
+                // -------------------------------------------------------------------------------------------------
     </script>
 </head>
 <body>
     <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
-    <div id="player"></div>
-
     <div class="row">
-        <div class="col-md-12">
-            <div id="workingLyrics" value="TEKST"></div>
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <div id="player"></div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <div id="workingLyrics" style="font-size:large" value="TEKST"></div>
             <div id="currentLyrics" style="display:none" value="TEKST"></div>
         </div>
     </div>
@@ -248,7 +253,8 @@
         <br />
     </div>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-2"></div>
+        <div class="col-md-4">
             <p>Youtube video URL</p>
             <input id="youtubeUrl" type="text" />
         </div>
@@ -260,7 +266,8 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
             <input type="file" id="lyricsText" />
         </div>
     </div>
