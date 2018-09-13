@@ -35,14 +35,15 @@
                 $("#lyricsContent").html('');
                 var previousEntry = null;
                 var currentEntry = null;
+                var delay = $("#delay").val();
 
                 for (var i = 0; i < lines.length; i++) {
                     match = regex.exec(lines[i]);
                     if (match != null) {
                         currentEntry = {
                             lyrics: match[4],
-                            time: Number(match[1]) * 60 + Number(match[2])
-                        };
+                            time: Number(match[1]) * 60 + Number(match[2]) + Number(delay)
+                    };
 
                         if (previousEntry != null)
                             previousEntry.endTime = currentEntry.time;
@@ -215,7 +216,7 @@
             lyricsPlayer.player = new YT.Player('player', {
                 height: '360',
                 width: '640',
-                videoId: 'TzG9sr2Amik',
+                videoId: 'lTvhvK1CKME',
                 events: {
                     //'onReady': onPlayerReady,
                     'onStateChange': lyricsPlayer.onPlayerStateChange
@@ -234,6 +235,10 @@
     </script>
 </head>
 <body>
+    <div class="row">
+        <div> </div>
+        <br />
+    </div>
     <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
     <div class="row">
         <div class="col-md-2"></div>
@@ -254,21 +259,32 @@
     </div>
     <div class="row">
         <div class="col-md-2"></div>
-        <div class="col-md-4">
+        <div class="col-md-2">
             <p>Youtube video URL</p>
+        </div>
+        <div class="col-md-2">
             <input id="youtubeUrl" type="text" />
         </div>
         <div class="col-md-2">
             <input id="loadUrl" type="button" value="LoadUrl" />
         </div>
-        <div class="col-md-2">
+        @*<div class="col-md-2">
             <input id="start" type="button" value="Start/Stop" />
+        </div>*@
+    </div>
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-2">
+            <input type="file" accept=".lrc" value="C:\Users\K403806\Music\Русский\4G - Улыбайся.lrc" id="lyricsText" />
         </div>
     </div>
     <div class="row">
         <div class="col-md-2"></div>
-        <div class="col-md-8">
-            <input type="file" id="lyricsText" />
+        <div class="col-md-2">
+            <p>Delay</p>
+        </div>
+        <div class="col-md-2">
+            <input id="delay" type="text" value="0" />
         </div>
     </div>
     <div class="row">
